@@ -8,6 +8,7 @@
 
 //======================== Hilos =======================
 struct pt Hilo1;
+struct pt Hilo2;
 //======================================================
 
 //================= Variables Globales =================
@@ -34,11 +35,25 @@ int cambios = 0;
 int ventilador = 46;
 int inclinometro = 47;
 int movimiento = 49;
-byte pzem1[] = {192, 168, 1, 1}, pzem2[] = {192, 168, 1, 2}, pzem3[] = {192, 168, 1, 3}, pzem4[] = {192, 168, 1, 4};
-byte pzem5[] = {192, 168, 1, 5}, pzem6[] = {192, 168, 1, 6};
 
-String dato[3] = {};
-float bus[6] = {};
+byte pzems[6][4] = { 
+  {192, 168, 1, 1}, 
+  {192, 168, 1, 2}, 
+  {192, 168, 1, 3}, 
+  {192, 168, 1, 4}, 
+  {192, 168, 1, 5}, 
+  {192, 168, 1, 6}
+  };
+
+float Bus[1] = {};
+float Bus_Voltage[6] = {0, 0, 0, 0, 0, 0};
+float Bus_Current[7] = {0, 0, 0, 0, 0, 0};
+float Bus_Energy[7] = {0, 0, 0, 0, 0, 0};
+
+float Bus_Banco1[4] = {0, 0, 0, 0};
+float Bus_Banco2[4] = {0, 0, 0, 0};
+float Bus_Banco3[4] = {0, 0, 0, 0};
+float Bus_Banco4[4] = {0, 0, 0, 0};
 //======================================================
 
 //=================== Loop Principal ===================
@@ -46,142 +61,115 @@ void setup() {
   Serial.begin(9600);
   attachInterrupt( 2, interrupciones, CHANGE);
 
+  pinMode (puertaOut, OUTPUT);
+
+  //Inicializacion de los hilos
+  PT_INIT(&Hilo1);
+  PT_INIT(&Hilo2);
+
 }
 
 void loop() {
-  PT_INIT(&Hilo1);
-
+  
+  digitalWrite (puertaOut, HIGH);
+  
+  Temperatura();
+  Humedad();
+  Read_PZEM(&Hilo1);
+  Read_Banks(&Hilo2);
+  Lectura_Puerta();
+  //====== Importante =====
+  Bus[0] = cambios;
+  if(Serial.available()){
+    Serial.print(Bus[0]);
+  }
+  cambios = 0;
+  //============
+  Combustible(); 
 }
 //======================================================
 
 //====================== Funciones =====================
-float temperatura(struct pt *pt) {
-  PT_BEGIN(pt); //Inicio de un ProtoThread
-  bus[0] = dht1.readTemperature();
-  bus[1] = dht2.readTemperature();
-  bus[2] = dht3.readTemperature();
-  bus[3] = dht4.readTemperature();
-  PT_END(pt);
 
-}
-
-
-float humedad() {
-
-  bus[0] = dht1.readHumidity();
-  bus[1] = dht2.readHumidity();
-  bus[2] = dht3.readHumidity();
-  bus[3] = dht4.readHumidity();
-
-}
-
-float voltajeAC() {
-  
-  bus[0] = pzem.voltage(pzem1);
-  delay(1000);
-  bus[1] = pzem.voltage(pzem2);
-  delay(1000);
-  bus[2] = pzem.voltage(pzem3);
-  delay(1000);
-  bus[3] = pzem.voltage(pzem4);
-  delay(1000);
-  bus[4] = pzem.voltage(pzem5);
-  delay(1000);
-  bus[5] = pzem.voltage(pzem6);
-  delay(1000);
-
-}
-
-
-float corrienteAC() {
-
-  bus[0] = pzem.current(pzem1);
-  delay(1000);
-  bus[1] = pzem.current(pzem2);
-  delay(1000);
-  bus[2] = pzem.current(pzem3);
-  delay(1000);
-  bus[3] = pzem.current(pzem4);
-  delay(1000);
-  bus[4] = pzem.current(pzem5);
-  delay(1000);
-  bus[5] = pzem.current(pzem6);
-  delay(1000);
-}
-
-
-float potenciaAC() {
-
-  bus[0] = pzem.energy(pzem1);
-  delay(1000);
-  bus[1] = pzem.energy(pzem2);
-  delay(1000);
-  bus[2] = pzem.energy(pzem3);
-  delay(1000);
-  bus[3] = pzem.energy(pzem4);
-  delay(1000);
-  bus[4] = pzem.energy(pzem5);
-  delay(1000);
-  bus[5] = pzem.energy(pzem6);
-  delay(1000);
-}
-
-int lecturaPuerta() {
-  pinMode (puertaOut, OUTPUT);
-  digitalWrite (puertaOut, HIGH);
-  bus[0] = digitalRead(puertaIn);
-}
-
-void interrupciones() {
-  cambios ++;
-  //Serial.println("pase");
-  delay(10);
-}
-
-float combustible() {
-  int promedio = 0;
-  for (int i = 0; i < 10; i++) {
-    bus[0] = analogRead(A2);
-    promedio = promedio + bus[0];
-    bus[0] = promedio / (i + 1);
-    delay(10);
+void Temperatura() {
+  if (Serial.available()) {
+    Serial.print(dht1.readTemperature());
+    Serial.print(dht2.readTemperature());
+    Serial.print(dht3.readTemperature());
+    Serial.print(dht4.readTemperature());
   }
 }
 
-void enviar() {
-  //if (bus[0] != 0) {
-  Serial.print(bus[0]);
-  //}
-  //if (bus[1] != 0) {
-  Serial.print(",");
-  Serial.print(bus[1]);
-  //}
-  //if (bus[2] != 0) {
-  Serial.print(",");
-  Serial.print(bus[2]);
-  //}
-  //if (bus[3] != 0) {
-  Serial.print(",");
-  Serial.print(bus[3]);
-  //}
-  //if (bus[4] != 0) {
-  Serial.print(",");
-  Serial.print(bus[4]);
-  //}
-  //if (bus[5] != 0) {
-  Serial.print(",");
-  Serial.print(bus[5]);
-  //}
+void Humedad() {
+  if (Serial.available()) {
+    Serial.print(dht1.readHumidity());
+    Serial.print(dht2.readHumidity());
+    Serial.print(dht3.readHumidity());
+    Serial.print(dht4.readHumidity());
+  }
 }
 
-void limpiarBus() {
-  bus[0] = 0;
-  bus[1] = 0;
-  bus[2] = 0;
-  bus[3] = 0;
-  bus[4] = 0;
-  bus[5] = 0;
+void Read_PZEM(struct pt *pt){
+  PT_BEGIN(pt); //Inicio de un ProtoThread
+  static long t = 0;
+  for(int i = 0; i <= 5; i++){
+    Bus_Voltage[i] = pzem.voltage(pzems[6][i]);
+    Bus_Current[i] = pzem.current(pzems[6][i]);
+    Bus_Energy[i] = pzem.energy(pzems[6][i]);
+    PT_WAIT_WHILE(pt, (millis()-t)<1000);
+  }
+  static int var = 0;
+  while(var < 6){
+    if(Serial.available()){
+      Serial.print(Bus_Voltage[var]);
+      var++;
+    }
+  }
+  var = 0;
+  while(var < 6){
+    if(Serial.available()){
+      Serial.print(Bus_Current[var]);
+      var++;
+    }
+  }
+  var = 0;
+  while(var < 6){
+    if(Serial.available()){
+      Serial.print(Bus_Energy[var]);
+      var++;
+    }
+  }
+ PT_END(pt);
+}
 
+int Lectura_Puerta() {
+  pinMode (puertaOut, OUTPUT);
+  digitalWrite (puertaOut, HIGH);
+  Bus[0] = digitalRead(puertaIn);
+  if(Serial.available()){
+      Serial.print(Bus[0]);
+    }
+}
+
+void interrupciones() {
+  cambios++;
+  //Serial.println("pase");
+  //delay(10);
+}
+
+float Combustible() {
+  int Promedio = 0;
+  for (int i = 0; i < 10; i++) {
+    Promedio = (Promedio + analogRead(A2))/(i + 1);
+    delay(10);
+  }
+  int var1 = 0;
+  while(var1 < 1){
+    if(Serial.available()){
+      Serial.print(Promedio);
+      var1++;
+    }
+  }
 }
 
 float medicionBateria() {
@@ -203,78 +191,84 @@ void ningunModulo() {
   digitalWrite (modulo4, LOW);
 }
 
-void medirBanco() {
-  ningunBanco();
-  if (dato[2] == "uno") {
-    int bateria = 0;
-    for (int bat = 22; bat < 26; bat++) {
-      digitalWrite(bat, HIGH);
-      delay(250);
-      bus[bateria] = medicionBateria();
-      digitalWrite(bat, LOW);
-      delay(250);
-      bateria ++;
-    }
-  } else if (dato[2] == "dos") {
-    int bateria = 0;
-    for (int bat = 26; bat < 30; bat++) {
-      digitalWrite(bat, HIGH);
-      delay(250);
-      bus[bateria] = medicionBateria();
-      digitalWrite(bat, LOW);
-      delay(250);
-      bateria ++;
-    }
-  } else if (dato[2] == "tres") {
-    int bateria = 0;
-    for (int bat = 30; bat < 34; bat++) {
-      digitalWrite(bat, HIGH);
-      delay(250);
-      bus[bateria] = medicionBateria();
-      digitalWrite(bat, LOW);
-      delay(250);
-      bateria ++;
-    }
-  } else if (dato[2] == "cuatro") {
-    int bateria = 0;
-    for (int bat = 34; bat < 38; bat++) {
-      digitalWrite(bat, HIGH);
-      delay(250);
-      bus[bateria] = medicionBateria();
-      digitalWrite(bat, LOW);
-      delay(250);
-      bateria ++;
-    }
-  } else {
-    Serial.print("banco no identificado");
-  }
-}
-
-void ningunBanco() {
+void Ningun_Banco() {
   for (int bat = 22; bat < 38; bat++) {
     pinMode(bat, OUTPUT);
     digitalWrite(bat, LOW);
   }
 }
 
-
-void modulo() {
-  ningunModulo();
-  if (dato[1] == "uno") {
-    digitalWrite (modulo1, HIGH);
-    medirBanco();
-  } else if (dato[1] == "dos") {
-    digitalWrite (modulo2, HIGH);
-    medirBanco();
-  } else if (dato[1] == "tres") {
-    digitalWrite (modulo3, HIGH);
-    medirBanco();
-  } else if (dato[1] == "cuatro") {
-    digitalWrite (modulo4, HIGH);
-    medirBanco();
-  } else {
-    Serial.print("modulo no identificado");
+void Read_Banks(struct pt *pt) {
+  PT_BEGIN(pt); //Inicio de un ProtoThread
+  Ningun_Banco();
+  static int bateria = 0;
+  static long t2 = 0;
+  
+  for (int bat = 22; bat < 26; bat++) {
+    digitalWrite(bat, HIGH);
+    PT_WAIT_WHILE(pt, (millis()-t2)<250);
+    Bus_Banco1[bateria] = medicionBateria();
+    digitalWrite(bat, LOW);
+    PT_WAIT_WHILE(pt, (millis()-t2)<250);
+    bateria ++;
+  }
+  static int var2 = 0;
+  while(var2 < 4){
+    if(Serial.available()){
+      Serial.print(Bus_Banco1[var2]);
+      var2++;
+    }
   }
 
+  for (int bat = 26; bat < 30; bat++) {
+    digitalWrite(bat, HIGH);
+    PT_WAIT_WHILE(pt, (millis()-t2)<250);
+    Bus_Banco2[bateria] = medicionBateria();
+    digitalWrite(bat, LOW);
+    PT_WAIT_WHILE(pt, (millis()-t2)<250);
+    bateria ++;
+  }
+  var2 = 0;
+  while(var2 < 4){
+    if(Serial.available()){
+      Serial.print(Bus_Banco2[var2]);
+      var2++;
+    }
+  }
+
+  for (int bat = 30; bat < 34; bat++) {
+    digitalWrite(bat, HIGH);
+    PT_WAIT_WHILE(pt, (millis()-t2)<250);
+    Bus_Banco3[bateria] = medicionBateria();
+    digitalWrite(bat, LOW);
+    PT_WAIT_WHILE(pt, (millis()-t2)<250);
+    bateria ++;
+  }
+  var2 = 0;
+  while(var2 < 4){
+    if(Serial.available()){
+      Serial.print(Bus_Banco3[var2]);
+      var2++;
+    }
+  }
+
+  
+  for (int bat = 34; bat < 38; bat++) {
+    digitalWrite(bat, HIGH);
+    PT_WAIT_WHILE(pt, (millis()-t2)<250);
+    Bus_Banco4[bateria] = medicionBateria();
+    digitalWrite(bat, LOW);
+    PT_WAIT_WHILE(pt, (millis()-t2)<250);
+    bateria ++;
+  }
+  var2 = 0;
+  while(var2 < 4){
+    if(Serial.available()){
+      Serial.print(Bus_Banco4[var2]);
+      var2++;
+    }
+  }
+  PT_END(pt);
 }
+
 //======================================================
