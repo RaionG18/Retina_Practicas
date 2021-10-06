@@ -93,19 +93,23 @@ void loop() {
 
 void Temperatura() {
   if (Serial.available()) {
+    Serial.print("@");
     Serial.print(dht1.readTemperature());
     Serial.print(dht2.readTemperature());
     Serial.print(dht3.readTemperature());
     Serial.print(dht4.readTemperature());
+    Serial.print("@");
   }
 }
 
 void Humedad() {
   if (Serial.available()) {
+    Serial.print("#");
     Serial.print(dht1.readHumidity());
     Serial.print(dht2.readHumidity());
     Serial.print(dht3.readHumidity());
     Serial.print(dht4.readHumidity());
+    Serial.print("#");
   }
 }
 
@@ -118,27 +122,36 @@ void Read_PZEM(struct pt *pt){
     Bus_Energy[i] = pzem.energy(pzems[6][i]);
     PT_WAIT_WHILE(pt, (millis()-t)<1000);
   }
+  
   static int var = 0;
+  Serial.print("%");
   while(var < 6){
     if(Serial.available()){
       Serial.print(Bus_Voltage[var]);
       var++;
     }
   }
+  Serial.print("%");
+  
   var = 0;
+  Serial.print("&");
   while(var < 6){
     if(Serial.available()){
       Serial.print(Bus_Current[var]);
       var++;
     }
   }
+  Serial.print("&");
+  
   var = 0;
+  Serial.print("*");
   while(var < 6){
     if(Serial.available()){
       Serial.print(Bus_Energy[var]);
       var++;
     }
   }
+  Serial.print("*");
  PT_END(pt);
 }
 
@@ -146,9 +159,11 @@ int Lectura_Puerta() {
   pinMode (puertaOut, OUTPUT);
   digitalWrite (puertaOut, HIGH);
   Bus[0] = digitalRead(puertaIn);
+  Serial.print("+");
   if(Serial.available()){
       Serial.print(Bus[0]);
     }
+  Serial.print("+");
 }
 
 void interrupciones() {
@@ -164,12 +179,14 @@ float Combustible() {
     delay(10);
   }
   int var1 = 0;
+  Serial.print(")");
   while(var1 < 1){
     if(Serial.available()){
       Serial.print(Promedio);
       var1++;
     }
   }
+  Serial.print(")");
 }
 
 float medicionBateria() {
@@ -213,12 +230,14 @@ void Read_Banks(struct pt *pt) {
     bateria ++;
   }
   static int var2 = 0;
+  Serial.print("?");
   while(var2 < 4){
     if(Serial.available()){
       Serial.print(Bus_Banco1[var2]);
       var2++;
     }
   }
+  Serial.print("?");
 
   for (int bat = 26; bat < 30; bat++) {
     digitalWrite(bat, HIGH);
@@ -229,12 +248,14 @@ void Read_Banks(struct pt *pt) {
     bateria ++;
   }
   var2 = 0;
+  Serial.print("[");
   while(var2 < 4){
     if(Serial.available()){
       Serial.print(Bus_Banco2[var2]);
       var2++;
     }
   }
+  Serial.print("[");
 
   for (int bat = 30; bat < 34; bat++) {
     digitalWrite(bat, HIGH);
@@ -245,14 +266,15 @@ void Read_Banks(struct pt *pt) {
     bateria ++;
   }
   var2 = 0;
+  Serial.print("!");
   while(var2 < 4){
     if(Serial.available()){
       Serial.print(Bus_Banco3[var2]);
       var2++;
     }
   }
+  Serial.print("!");
 
-  
   for (int bat = 34; bat < 38; bat++) {
     digitalWrite(bat, HIGH);
     PT_WAIT_WHILE(pt, (millis()-t2)<250);
@@ -262,13 +284,27 @@ void Read_Banks(struct pt *pt) {
     bateria ++;
   }
   var2 = 0;
+  Serial.print("]");
   while(var2 < 4){
     if(Serial.available()){
       Serial.print(Bus_Banco4[var2]);
       var2++;
     }
   }
+  Serial.print("]");
   PT_END(pt);
 }
-
 //======================================================
+
+//Codificacion de Signos
+// @ = Temperatura
+// # = Humedad
+// % = Voltaje
+// & = Corriente
+// * = Potencia
+// + = Lectura Puerta
+// ) = Combustible
+// ? = Banco de Baterias 1
+// [ = Banco de Baterias 2
+// ! = Banco de Baterias 3
+// ] = Banco de Baterias 4
