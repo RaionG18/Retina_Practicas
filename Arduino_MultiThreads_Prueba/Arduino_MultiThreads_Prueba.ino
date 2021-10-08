@@ -36,13 +36,20 @@ int ventilador = 46;
 int inclinometro = 47;
 int movimiento = 49;
 
-byte pzems[6] = { 
-  (192, 168, 1, 1), 
-  (192, 168, 1, 2), 
-  (192, 168, 1, 3), 
-  (192, 168, 1, 4), 
-  (192, 168, 1, 5), 
-  (192, 168, 1, 6)
+byte ipPZEM1[] = {192, 168, 1, 1};
+byte ipPZEM2[] = {192, 168, 1, 2};
+byte ipPZEM3[] = {192, 168, 1, 3};
+byte ipPZEM4[] = {192, 168, 1, 4};
+byte ipPZEM5[] = {192, 168, 1, 5};
+byte ipPZEM6[] = {192, 168, 1, 6};
+
+byte pzems[] = { 
+  &ipPZEM1, 
+  &ipPZEM2, 
+  &ipPZEM3, 
+  &ipPZEM4, 
+  &ipPZEM5, 
+  &ipPZEM6
   };
 
 float Bus[1] = {};
@@ -73,19 +80,20 @@ void loop() {
   
   digitalWrite (puertaOut, HIGH);
   
-  Temperatura();
-  Humedad();
+  //Temperatura();
+  //Humedad();
   Read_PZEM(&Hilo1);
-  Read_Banks(&Hilo2);
-  Lectura_Puerta();
+  //Read_Banks(&Hilo2);
+  //Lectura_Puerta();
   //====== Importante =====
-  Bus[0] = cambios;
-  Serial.print("/");
-  Serial.print(Bus[0]);
-  Serial.print("/");
-  cambios = 0;
+  //Serial.print("/");
+  //Bus[0] = cambios;
+  //Serial.print(Bus[0]);
+  //Serial.print("/");
+  //Serial.print("\r");
+  //cambios = 0;
   //============
-  Combustible(); 
+  //Combustible(); 
 }
 //======================================================
 
@@ -101,6 +109,7 @@ void Temperatura() {
   Serial.print(",");
   Serial.print(dht4.readTemperature());
   Serial.print("@");
+  Serial.print("\r");
 }
 
 void Humedad() {
@@ -113,19 +122,20 @@ void Humedad() {
   Serial.print(",");
   Serial.print(dht4.readHumidity());
   Serial.print("#");
+  Serial.print("\r");
 }
 
 void Read_PZEM(struct pt *pt){
   PT_BEGIN(pt); //Inicio de un ProtoThread
-  static long t = 0;
+  static long t = millis();
+  static int var = 0;
   for(int i = 0; i <= 5; i++){
-    Bus_Voltage[i] = pzem.voltage(pzems[i]);
-    Bus_Current[i] = pzem.current(pzems[i]);
-    Bus_Energy[i] = pzem.energy(pzems[i]);
+    Serial.print(pzems[i]);
+    Serial.print("\r");
     PT_WAIT_WHILE(pt, (millis()-t)<1000);
   }
   
-  static int var = 0;
+  var = 0;
   Serial.print("%");
   while(var < 6){
     Serial.print(Bus_Voltage[var]);
@@ -135,22 +145,31 @@ void Read_PZEM(struct pt *pt){
     var++;
   }
   Serial.print("%");
+  Serial.print("\r");
   
   var = 0;
   Serial.print("&");
   while(var < 6){
     Serial.print(Bus_Current[var]);
+    if(var<5){
+      Serial.print(",");
+    }
     var++;
   }
   Serial.print("&");
+  Serial.print("\r");
   
   var = 0;
   Serial.print("*");
   while(var < 6){
     Serial.print(Bus_Energy[var]);
+    if(var<5){
+      Serial.print(",");
+    }
     var++;
   }
   Serial.print("*");
+  Serial.print("\r");
  PT_END(pt);
 }
 
@@ -161,6 +180,7 @@ int Lectura_Puerta() {
   Serial.print("+");
   Serial.print(Bus[0]);
   Serial.print("+");
+  Serial.print("\r");
 }
 
 void interrupciones() {
@@ -182,6 +202,7 @@ float Combustible() {
     var1++;
   }
   Serial.print(")");
+  Serial.print("\r");
 }
 
 float medicionBateria() {
@@ -215,6 +236,7 @@ void Read_Banks(struct pt *pt) {
   Ningun_Banco();
   static int bateria = 0;
   static long t2 = 0;
+  static int var2 = 0;
   
   for (int bat = 22; bat < 26; bat++) {
     digitalWrite(bat, HIGH);
@@ -224,13 +246,17 @@ void Read_Banks(struct pt *pt) {
     PT_WAIT_WHILE(pt, (millis()-t2)<250);
     bateria ++;
   }
-  static int var2 = 0;
+  var2 = 0;
   Serial.print("?");
   while(var2 < 4){
     Serial.print(Bus_Banco1[var2]);
+    if(var2<3){
+      Serial.print(",");
+    }
     var2++;
   }
   Serial.print("?");
+  Serial.print("\r");
 
   for (int bat = 26; bat < 30; bat++) {
     digitalWrite(bat, HIGH);
@@ -244,9 +270,13 @@ void Read_Banks(struct pt *pt) {
   Serial.print("[");
   while(var2 < 4){
     Serial.print(Bus_Banco2[var2]);
+    if(var2<3){
+      Serial.print(",");
+    }
     var2++;
   }
   Serial.print("[");
+  Serial.print("\r");
 
   for (int bat = 30; bat < 34; bat++) {
     digitalWrite(bat, HIGH);
@@ -260,9 +290,13 @@ void Read_Banks(struct pt *pt) {
   Serial.print("!");
   while(var2 < 4){
     Serial.print(Bus_Banco3[var2]);
+    if(var2<3){
+      Serial.print(",");
+    }
     var2++;
   }
   Serial.print("!");
+  Serial.print("\r");
 
   for (int bat = 34; bat < 38; bat++) {
     digitalWrite(bat, HIGH);
@@ -276,9 +310,13 @@ void Read_Banks(struct pt *pt) {
   Serial.print("]");
   while(var2 < 4){
     Serial.print(Bus_Banco4[var2]);
+    if(var2<3){
+      Serial.print(",");
+    }
     var2++;
   }
   Serial.print("]");
+  Serial.print("\r");
   PT_END(pt);
 }
 //======================================================
@@ -295,4 +333,3 @@ void Read_Banks(struct pt *pt) {
 // [ = Banco de Baterias 2
 // ! = Banco de Baterias 3
 // ] = Banco de Baterias 4
-// / = Cambios Puerta
