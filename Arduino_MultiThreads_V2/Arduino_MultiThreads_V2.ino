@@ -16,14 +16,10 @@ DHT dht1(DHT1, DHTTYPE), dht2(DHT2, DHTTYPE), dht3(DHT3, DHTTYPE), dht4(DHT4, DH
 PZEM004T pzem(&Serial1);
 
 int puertaIn = 51, puertaOut = 50, cambios = 0;
-
-byte ipPZEM1[] = {192, 168, 1, 1}, ipPZEM2[] = {192, 168, 1, 2};
-byte ipPZEM3[] = {192, 168, 1, 3}, ipPZEM4[] = {192, 168, 1, 4};
-byte ipPZEM5[] = {192, 168, 1, 5}, ipPZEM6[] = {192, 168, 1, 6};
 //======================================================
 
 //====================== Pointers ======================
-byte *ipPZEM[] = {ipPZEM1, ipPZEM2, ipPZEM3, ipPZEM4, ipPZEM5, ipPZEM6};
+byte ipPZEM[6][4] = {{192, 168, 1, 1}, {192, 168, 1, 2}, {192, 168, 1, 3}, {192, 168, 1, 4}, {192, 168, 1, 5}, {192, 168, 1, 6}};
 //======================================================
 
 //=================== Loop Principal ===================
@@ -83,9 +79,14 @@ void Humedad() {
 
 //===================== Read PZEM ======================
 void Read_PZEM(){
-  for(int i = 0; i <= 5; i++){
-    Serial.print(*ipPZEM[i]);
+  int* tempIP = new int(9);
+  for(int i = 0; i < 6; i++){
+    for(int n = 0; n < 4; n++){
+      tempIP[n] = ipPZEM[i][n];
+    }
+    Serial.print(*tempIP);
     Serial.print("\r");
+    delete [] tempIP;
   }
 }
 //======================================================
