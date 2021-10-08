@@ -83,5 +83,9 @@ void Humedad() {
 
 //===================== Read PZEM ======================
 void Read_PZEM(){
+  for(int i = 0; i <= 5; i++){
+    Serial.print(*ipPZEM[i]);
+    Serial.print("\r");
   }
+}
 //======================================================
