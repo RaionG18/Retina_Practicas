@@ -58,7 +58,6 @@ void loop() {
   }
   //Lectura de Bancos de Baterias cada 0.250s
   if((millis()-tBank)>250){
-    Serial.print(nBank);
     if(working == 0){
       working = Change_Bank(nBank, first);
       tBank = millis();
@@ -85,15 +84,15 @@ void loop() {
   //====== Importante =====
   Bus[0] = cambios;
   Serial.print("/");
-  Serial.print(Bus[0]);
-  Serial.print("/");
-  Serial.print("\r");
+  Serial.print(String(Bus[0]));
+  Serial.println("/");
   cambios = 0;
   //=======================
   Combustible(); 
 }
 //======================================================
 
+//=================== Funciones ===================
 //=================== Interrupciones ===================
 void Interrupciones() {
   cambios++;
@@ -105,30 +104,28 @@ void Interrupciones() {
 //===================== Temperatura ====================
 void Temperatura() {
   Serial.print("@");
-  Serial.print(dht1.readTemperature());
+  Serial.print(String(dht1.readTemperature()));
   Serial.print(",");
-  Serial.print(dht2.readTemperature());
+  Serial.print(String(dht2.readTemperature()));
   Serial.print(",");
-  Serial.print(dht3.readTemperature());
+  Serial.print(String(dht3.readTemperature()));
   Serial.print(",");
-  Serial.print(dht4.readTemperature());
-  Serial.print("@");
-  Serial.print("\r");
+  Serial.print(String(dht4.readTemperature()));
+  Serial.println("@");
 }
 //======================================================
 
-//====================== Humerdad ======================
+//====================== Humedad ======================
 void Humedad() {
   Serial.print("#");
-  Serial.print(dht1.readHumidity());
+  Serial.print(String(dht1.readHumidity()));
   Serial.print(",");
-  Serial.print(dht2.readHumidity());
+  Serial.print(String(dht2.readHumidity()));
   Serial.print(",");
-  Serial.print(dht3.readHumidity());
+  Serial.print(String(dht3.readHumidity()));
   Serial.print(",");
-  Serial.print(dht4.readHumidity());
-  Serial.print("#");
-  Serial.print("\r");
+  Serial.print(String(dht4.readHumidity()));
+  Serial.println("#");
 }
 //======================================================
 
@@ -149,32 +146,29 @@ void Send_PZEM(){
   int var = 0;
   Serial.print("%");
   while(var < 6){
-    Serial.print(Bus_Voltage[var]);
+    Serial.print(String(Bus_Voltage[var]));
     if(var<5){
       Serial.print(",");
     }
     var++;
   }
-  Serial.print("%");
-  Serial.print("\r");
+  Serial.println("%");
   
   var = 0;
   Serial.print("&");
   while(var < 6){
-    Serial.print(Bus_Current[var]);
+    Serial.print(String(Bus_Current[var]));
     var++;
   }
-  Serial.print("&");
-  Serial.print("\r");
+  Serial.println("&");
   
   var = 0;
   Serial.print("*");
   while(var < 6){
-    Serial.print(Bus_Energy[var]);
+    Serial.print(String(Bus_Energy[var]));
     var++;
   }
-  Serial.print("*");
-  Serial.print("\r");
+  Serial.println("*");
 }
 //======================================================
 
@@ -256,25 +250,21 @@ int Send_Bank(int i){
   }
   
   while(var < 4){
-    Serial.print(Bus_Banco[var]);
+    Serial.print(String(Bus_Banco[var]));
     var++;
   }
 
   if(i == 4){
-    Serial.print("?");
-    Serial.print("\r");
+    Serial.println("?");
   }
   else if(i == 8){
-    Serial.print("[");
-    Serial.print("\r");
+    Serial.println("[");
   }
   else if(i == 12){
-    Serial.print("!");
-    Serial.print("\r");
+    Serial.println("!");
   }
   else{
-    Serial.print("]");
-    Serial.print("\r");
+    Serial.println("]");
   }
 }
 //======================================================
@@ -285,9 +275,8 @@ void Lectura_Puerta() {
   digitalWrite (puertaOut, HIGH);
   Bus[0] = digitalRead(puertaIn);
   Serial.print("+");
-  Serial.print(Bus[0]);
-  Serial.print("+");
-  Serial.print("\r");
+  Serial.print(String(Bus[0]));
+  Serial.println("+");
 }
 //======================================================
 
@@ -298,14 +287,9 @@ void Combustible() {
     Promedio = (Promedio + analogRead(A2))/(i + 1);
     delay(10);
   }
-  int var1 = 0;
   Serial.print(")");
-  while(var1 < 1){
-    Serial.print(Promedio);
-    var1++;
-  }
-  Serial.print(")");
-  Serial.print("\r");
+  Serial.print(String(Promedio));
+  Serial.println(")");
 }
 //======================================================
 
