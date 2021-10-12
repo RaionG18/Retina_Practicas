@@ -24,47 +24,7 @@ except:
     sleep(1)
 
 while True:
-    tiempoInicio = datetime.datetime.now()
-
-    #Funcion para leer Serial
-    data = arduino.readline()
-
-    if(data == "@" & var == 1):
-        var += 1
-        while arduino.inWaiting() > 0:
-            sleep(0.1)
-            Temperatura_Raw = arduino.readall().decode()
-            Temperatura = Temperatura_Raw.split(',')
-    elif(data == "#" & var == 1):
-        var += 1
-        while arduino.inWaiting() > 0:
-            sleep(0.1)
-            Humedad_Raw = arduino.readall().decode()
-            Humedad = Temperatura_Raw.split(',')
-    elif(data == "%" & var == 1):
-        var += 1
-        while arduino.inWaiting() > 0:
-            sleep(0.1)
-            Voltaje_Raw = arduino.readall().decode()
-            Voltaje = Voltaje_Raw.split(',')
-    elif(data == "&" & var == 1):
-        var += 1
-        while arduino.inWaiting() > 0:
-            sleep(0.1)
-            Corriente_Raw = arduino.readall().decode()
-            Corriente = Corriente_Raw.split(',')
-    elif(data == "*" & var == 1):
-        var += 1
-        while arduino.inWaiting() > 0:
-            sleep(0.1)
-            Potencia_Raw = arduino.readall().decode()
-            Potencia = Potencia_Raw.split(',')
-    elif(data == "+" & var == 1):
-        var += 1
-        while arduino.inWaiting() > 0:
-            sleep(0.1)
-            Potencia_Raw = arduino.readall().decode()
-            Potencia = Potencia_Raw.split(',')
-    else:
-        var = 1
+   if arduino.in_waiting:
+       packet = arduino.read.line()
+       packet.decode(('utf').rstrip('\n'))
         
