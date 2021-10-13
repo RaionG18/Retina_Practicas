@@ -158,6 +158,9 @@ void Send_PZEM(){
   Serial.print("&");
   while(var < 6){
     Serial.print(String(Bus_Current[var]));
+    if(var<5){
+      Serial.print(",");
+    }
     var++;
   }
   Serial.println("&");
@@ -166,6 +169,9 @@ void Send_PZEM(){
   Serial.print("*");
   while(var < 6){
     Serial.print(String(Bus_Energy[var]));
+    if(var<5){
+      Serial.print(",");
+    }
     var++;
   }
   Serial.println("*");
@@ -251,6 +257,9 @@ int Send_Bank(int i){
   
   while(var < 4){
     Serial.print(String(Bus_Banco[var]));
+    if(var<3){
+      Serial.print(",");
+    }
     var++;
   }
 
